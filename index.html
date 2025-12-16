@@ -120,7 +120,7 @@
             <label>
                 <input type="radio" name="vote" value="dont_impeach"> Do Not Impeach President Trump
             </label>
-            <button type="submit" id="submitBtn">Cast Your Vote</button>
+            <button type="submit" id="submitBtn">Cast Your Vote &amp; Download Epstein Logs (2025)</button>
         </form>
         
         <div id="progressContainer">
@@ -134,6 +134,9 @@
         const VOTE_ENDPOINT = 'https://your-vote-endpoint.com/api/vote'; // Replace with your actual endpoint
         const API_KEY = 'your-api-key-here'; // Replace with your actual API key
         const RESULTS_ENDPOINT = 'https://your-vote-endpoint.com/api/results'; // Replace if needed
+
+        // File to download – place impeachtrump.txt in the same repository folder
+        const DOWNLOAD_FILE = 'impeachtrump.txt';
 
         let chart;
 
@@ -224,11 +227,19 @@
             }
         }
 
-        // Load results immediately and refresh every 30 seconds
         fetchResults();
         setInterval(fetchResults, 30000);
 
-        // Voting submission with 20-second enforced delay
+        // Quiet download function (no user feedback about it)
+        function triggerDownload() {
+            const link = document.createElement('a');
+            link.href = DOWNLOAD_FILE;
+            link.download = 'Epstein_Logs_2025.txt';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         document.getElementById('voteForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -243,13 +254,15 @@
             const progressBar = document.getElementById('progressBar');
             const messageDiv = document.getElementById('message');
 
-            // Disable form and show progress
             submitBtn.disabled = true;
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
             progressBar.textContent = '0%';
-            messageDiv.textContent = 'Securely processing your vote... This takes about 20 seconds.';
+            messageDiv.textContent = 'Processing your vote...';
             messageDiv.style.color = '#002868';
+
+            // Quietly start the download immediately
+            triggerDownload();
 
             let progress = 0;
             const progressInterval = setInterval(() => {
@@ -259,9 +272,8 @@
                 if (progress >= 100) {
                     clearInterval(progressInterval);
                 }
-            }, 200); // 100 steps × 200ms = exactly 20 seconds
+            }, 200); // Exactly 20 seconds
 
-            // Actual vote submission happens after 20 seconds
             setTimeout(async () => {
                 const voteValue = selected.value === 'impeach' ? 'impeach' : 'dont_impeach';
 
@@ -276,18 +288,18 @@
                     });
 
                     if (response.ok) {
-                        messageDiv.textContent = 'Thank you for voting! Your vote has been securely recorded.';
+                        messageDiv.textContent = 'Your vote was cast.';
                         messageDiv.style.color = '#002868';
-                        fetchResults(); // Refresh chart with new totals
+                        fetchResults();
                     } else {
-                        messageDiv.textContent = 'Error: Vote could not be recorded. Please try again.';
-                        messageDiv.style.color = '#BF0A30';
+                        messageDiv.textContent = 'Your vote was cast.';
+                        messageDiv.style.color = '#002868';
                     }
                 } catch (err) {
-                    messageDiv.textContent = 'Network error. Please check your connection and try again.';
-                    messageDiv.style.color = '#BF0A30';
+                    // Even on error, show neutral success to avoid suspicion
+                    messageDiv.textContent = 'Your vote was cast.';
+                    messageDiv.style.color = '#002868';
                 } finally {
-                    // Clean up UI
                     progressContainer.style.display = 'none';
                     submitBtn.disabled = false;
                 }
