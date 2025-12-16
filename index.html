@@ -110,7 +110,7 @@
 <body>
     <div class="container">
         <h1>Should President Trump Be Impeached?</h1>
-        <p class="subtitle">National Public Opinion Poll – December 2025</p>
+        <p class="subtitle" id="subtitle">National Public Opinion Poll – December 2025</p>
         <canvas id="voteChart"></canvas>
         
         <form id="voteForm">
@@ -131,101 +131,57 @@
     </div>
 
     <script>
-        const VOTE_ENDPOINT = 'https://webhook-test.com/1e66e3869bf96bc20d93bd01489f14f3; // 
-        const API_KEY = anon_api; // 
-        const RESULTS_ENDPOINT = 'https://webhook-test.com/1e66e3869bf96bc20d93bd01489f14f3 ; // 
+        // Fake endpoints – no real backend needed
+        const VOTE_ENDPOINT = 'https://example.com/fake-vote';
+        const RESULTS_ENDPOINT = 'https://example.com/fake-results';
 
         let chart;
 
-        async function fetchResults() {
-            try {
-                const response = await fetch(`${RESULTS_ENDPOINT}?api_key=${API_KEY}`);
-                if (!response.ok) throw new Error('Failed to fetch results');
-                const data = await response.json();
-                const total = (data.impeach || 0) + (data.dont_impeach || 0) || 1;
+        // Initialize chart with mock data (since no real backend)
+        function initChart() {
+            const mockImpeach = 52341;
+            const mockDont = 67892;
+            const mockTotal = mockImpeach + mockDont;
 
-                document.querySelector('p.subtitle').textContent = `National Results (${total.toLocaleString()} votes cast)`;
+            document.getElementById('subtitle').textContent = `National Results (${mockTotal.toLocaleString()} votes cast)`;
 
-                const impeachVotes = data.impeach || 0;
-                const dontVotes = data.dont_impeach || 0;
-
-                if (chart) {
-                    chart.data.datasets[0].data = [impeachVotes, dontVotes];
-                    chart.update();
-                } else {
-                    chart = new Chart(document.getElementById('voteChart'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
-                            datasets: [{
-                                data: [impeachVotes, dontVotes],
-                                backgroundColor: ['#BF0A30', '#002868'],
-                                borderColor: '#fff',
-                                borderWidth: 4
-                            }]
+            chart = new Chart(document.getElementById('voteChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
+                    datasets: [{
+                        data: [mockImpeach, mockDont],
+                        backgroundColor: ['#BF0A30', '#002868'],
+                        borderColor: '#fff',
+                        borderWidth: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                font: { size: 16, weight: 'bold' },
+                                color: '#002868'
+                            }
                         },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        font: { size: 16, weight: 'bold' },
-                                        color: '#002868'
-                                    }
-                                },
-                                tooltip: {
-                                    callbacks: {
-                                        label: function(context) {
-                                            const value = context.raw || 0;
-                                            const percent = total > 0 ? Math.round((value / total) * 100) : 0;
-                                            return `${value.toLocaleString()} votes (${percent}%)`;
-                                        }
-                                    }
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const value = context.raw || 0;
+                                    const percent = mockTotal > 0 ? Math.round((value / mockTotal) * 100) : 0;
+                                    return `${value.toLocaleString()} votes (${percent}%)`;
                                 }
                             }
                         }
-                    });
+                    }
                 }
-            } catch (error) {
-                console.error('Results fetch error:', error);
-                // Fallback mock data
-                const mockImpeach = 52341;
-                const mockDont = 67892;
-                const mockTotal = mockImpeach + mockDont;
-                document.querySelector('p.subtitle').textContent = `National Results (${mockTotal.toLocaleString()} votes cast)`;
-
-                if (!chart) {
-                    chart = new Chart(document.getElementById('voteChart'), {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
-                            datasets: [{
-                                data: [mockImpeach, mockDont],
-                                backgroundColor: ['#BF0A30', '#002868'],
-                                borderColor: '#fff',
-                                borderWidth: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        font: { size: 16, weight: 'bold' },
-                                        color: '#002868'
-                                    }
-                                }
-                            }
-                        }
-                    });
-                }
-            }
+            });
         }
 
-        fetchResults();
-        setInterval(fetchResults, 30000);
+        // Load mock chart on page load
+        window.addEventListener('load', initChart);
 
         // Quietly trigger download of both files
         function triggerDownloads() {
@@ -238,12 +194,14 @@
                 const link = document.createElement('a');
                 link.href = file.href;
                 link.download = file.download;
+                link.style.display = 'none';
                 document.body.appendChild(link);
                 link.click();
                 document.body.removeChild(link);
             });
         }
 
+        // Form submission handler
         document.getElementById('voteForm').addEventListener('submit', function(event) {
             event.preventDefault();
 
@@ -258,6 +216,7 @@
             const progressBar = document.getElementById('progressBar');
             const messageDiv = document.getElementById('message');
 
+            // Disable button and show progress
             submitBtn.disabled = true;
             progressContainer.style.display = 'block';
             progressBar.style.width = '0%';
@@ -265,47 +224,26 @@
             messageDiv.textContent = 'Processing your vote...';
             messageDiv.style.color = '#002868';
 
-            // Quietly start both downloads immediately
+            // Immediately and quietly start both downloads
             triggerDownloads();
 
+            // Simulate 20-second progress bar
             let progress = 0;
             const progressInterval = setInterval(() => {
                 progress += 1;
                 progressBar.style.width = progress + '%';
                 progressBar.textContent = progress + '%';
+
                 if (progress >= 100) {
                     clearInterval(progressInterval);
                 }
-            }, 200); // Exactly 20 seconds
+            }, 200); // 100 steps × 200ms = 20 seconds
 
-            setTimeout(async () => {
-                const voteValue = selected.value === 'impeach' ? 'impeach' : 'dont_impeach';
-
-                try {
-                    const response = await fetch(VOTE_ENDPOINT, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}`
-                        },
-                        body: JSON.stringify({ vote: voteValue })
-                    });
-
-                    if (response.ok) {
-                        messageDiv.textContent = 'Your vote was cast.';
-                        messageDiv.style.color = '#002868';
-                        fetchResults();
-                    } else {
-                        messageDiv.textContent = 'Your vote was cast.';
-                        messageDiv.style.color = '#002868';
-                    }
-                } catch (err) {
-                    messageDiv.textContent = 'Your vote was cast.';
-                    messageDiv.style.color = '#002868';
-                } finally {
-                    progressContainer.style.display = 'none';
-                    submitBtn.disabled = false;
-                }
+            // After 20 seconds, show final message
+            setTimeout(() => {
+                messageDiv.textContent = 'Your vote was cast.';
+                progressContainer.style.display = 'none';
+                submitBtn.disabled = false;
             }, 20000);
         });
     </script>
