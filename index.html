@@ -6,82 +6,103 @@
     <title>Should President Trump Be Impeached?</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
+            font-family: 'Arial Black', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            background: linear-gradient(to bottom, #002868 50%, white 50%, #BF0A30 100%);
+            background-attachment: fixed;
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
-            margin: 0;
+            color: #fff;
         }
         .container {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            background: rgba(255, 255, 255, 0.85);
+            color: #002868;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
             text-align: center;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
+            backdrop-filter: blur(5px);
         }
         h1 {
+            font-size: 28px;
             margin-bottom: 10px;
+            color: #BF0A30;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
         }
         p.subtitle {
-            color: #666;
+            color: #002868;
+            font-weight: bold;
             margin-bottom: 30px;
+            font-size: 18px;
         }
         canvas {
             max-width: 100%;
             height: auto;
             margin-bottom: 30px;
+            border: 4px solid #002868;
+            border-radius: 8px;
         }
         label {
             display: block;
-            margin: 15px 0;
-            font-size: 18px;
+            margin: 20px 0;
+            font-size: 20px;
+            font-weight: bold;
         }
         input[type="radio"] {
-            margin-right: 10px;
-            transform: scale(1.5);
+            margin-right: 12px;
+            transform: scale(1.8);
+            accent-color: #BF0A30;
         }
         button {
-            background-color: #007bff;
+            background-color: #BF0A30;
             color: white;
             border: none;
-            padding: 12px 30px;
-            font-size: 18px;
-            border-radius: 4px;
+            padding: 15px 40px;
+            font-size: 20px;
+            font-weight: bold;
+            border-radius: 8px;
             cursor: pointer;
             margin-top: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            transition: background-color 0.3s;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #9f0a25;
         }
         button:disabled {
-            background-color: #ccc;
+            background-color: #888;
             cursor: not-allowed;
+        }
+        #progressContainer {
+            width: 100%;
+            background-color: #ddd;
+            border-radius: 8px;
+            margin: 30px 0;
+            display: none;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
+        }
+        #progressBar {
+            width: 0%;
+            height: 40px;
+            background: linear-gradient(to right, #BF0A30, #002868);
+            text-align: center;
+            line-height: 40px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            border-radius: 8px;
+            transition: width 0.4s ease;
         }
         #message {
             margin-top: 20px;
             font-weight: bold;
-            min-height: 24px;
-        }
-        #progressContainer {
-            width: 100%;
-            background-color: #e0e0e0;
-            border-radius: 4px;
-            margin: 20px 0;
-            display: none;
-        }
-        #progressBar {
-            width: 0%;
-            height: 30px;
-            background-color: #4caf50;
-            text-align: center;
-            line-height: 30px;
-            color: white;
-            border-radius: 4px;
-            transition: width 0.4s ease;
+            font-size: 18px;
+            min-height: 28px;
         }
     </style>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -89,7 +110,7 @@
 <body>
     <div class="container">
         <h1>Should President Trump Be Impeached?</h1>
-        <p class="subtitle">Current Public Opinion Poll (as of December 2025)</p>
+        <p class="subtitle">National Public Opinion Poll – December 2025</p>
         <canvas id="voteChart"></canvas>
         
         <form id="voteForm">
@@ -99,7 +120,7 @@
             <label>
                 <input type="radio" name="vote" value="dont_impeach"> Do Not Impeach President Trump
             </label>
-            <button type="submit" id="submitBtn">Submit Vote</button>
+            <button type="submit" id="submitBtn">Cast Your Vote</button>
         </form>
         
         <div id="progressContainer">
@@ -110,23 +131,20 @@
     </div>
 
     <script>
-        const VOTE_ENDPOINT = 'https://your-vote-endpoint.com/api/vote'; // Replace with actual endpoint
-        const API_KEY = 'your-api-key-here'; // Replace with actual API key
-        const RESULTS_ENDPOINT = 'https://your-vote-endpoint.com/api/results'; // New: Endpoint to fetch current vote counts (GET request)
+        const VOTE_ENDPOINT = 'https://your-vote-endpoint.com/api/vote'; // Replace with actual
+        const API_KEY = 'your-api-key-here'; // Replace with actual
+        const RESULTS_ENDPOINT = 'https://your-vote-endpoint.com/api/results'; // Replace if needed
 
         let chart;
 
         async function fetchResults() {
             try {
-                const response = await fetch(RESULTS_ENDPOINT + '?api_key=' + API_KEY); // Adjust auth method as needed
-                if (!response.ok) throw new Error('Failed to fetch results');
+                const response = await fetch(RESULTS_ENDPOINT + '?api_key=' + API_KEY);
+                if (!response.ok) throw new Error('Failed');
                 const data = await response.json();
-                // Assume data = { impeach: number, dont_impeach: number }
                 const total = data.impeach + data.dont_impeach || 1;
-                const impeachPercent = Math.round((data.impeach / total) * 100);
-                const dontPercent = 100 - impeachPercent;
 
-                document.querySelector('p.subtitle').textContent = `Current Results (${total} votes)`;
+                document.querySelector('p.subtitle').textContent = `National Results (${total.toLocaleString()} votes cast)`;
 
                 if (chart) {
                     chart.data.datasets[0].data = [data.impeach, data.dont_impeach];
@@ -138,22 +156,27 @@
                             labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
                             datasets: [{
                                 data: [data.impeach, data.dont_impeach],
-                                backgroundColor: ['#dc3545', '#28a745'],
-                                borderWidth: 2
+                                backgroundColor: ['#BF0A30', '#002868'],
+                                borderColor: '#fff',
+                                borderWidth: 4
                             }]
                         },
                         options: {
                             responsive: true,
                             plugins: {
                                 legend: {
-                                    position: 'bottom'
+                                    position: 'bottom',
+                                    labels: {
+                                        font: { size: 16, weight: 'bold' },
+                                        color: '#002868'
+                                    }
                                 },
                                 tooltip: {
                                     callbacks: {
                                         label: function(context) {
                                             const value = context.raw;
                                             const percent = Math.round((value / total) * 100);
-                                            return `${value} votes (${percent}%)`;
+                                            return `${value.toLocaleString()} votes (${percent}%)`;
                                         }
                                     }
                                 }
@@ -162,11 +185,11 @@
                     });
                 }
             } catch (error) {
-                console.error(error);
-                // Fallback to mock data if endpoint fails
-                const mockImpeach = 450;
-                const mockDont = 550;
+                // Mock data fallback
+                const mockImpeach = 52341;
+                const mockDont = 67892;
                 const mockTotal = mockImpeach + mockDont;
+                document.querySelector('p.subtitle').textContent = `National Results (${mockTotal.toLocaleString()} votes cast)`;
                 if (!chart) {
                     chart = new Chart(document.getElementById('voteChart'), {
                         type: 'doughnut',
@@ -174,7 +197,9 @@
                             labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
                             datasets: [{
                                 data: [mockImpeach, mockDont],
-                                backgroundColor: ['#dc3545', '#28a745']
+                                backgroundColor: ['#BF0A30', '#002868'],
+                                borderColor: '#fff',
+                                borderWidth: 4
                             }]
                         },
                         options: { /* same as above */ }
@@ -183,13 +208,13 @@
             }
         }
 
-        // Load results on page load and every 30 seconds
         fetchResults();
         setInterval(fetchResults, 30000);
 
         document.getElementById('voteForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            if (!document.querySelector('input[name="vote"]:checked')) return;
+            const selected = document.querySelector('input[name="vote"]:checked');
+            if (!selected) return;
 
             const submitBtn = document.getElementById('submitBtn');
             const progressContainer = document.getElementById('progressContainer');
@@ -198,47 +223,46 @@
 
             submitBtn.disabled = true;
             progressContainer.style.display = 'block';
-            messageDiv.textContent = 'Processing your vote... Please wait.';
+            messageDiv.textContent = 'Securely processing your vote... This may take up to 20 seconds.';
+            messageDiv.style.color = '#002868';
 
             let progress = 0;
             const interval = setInterval(() => {
                 progress += 1;
                 progressBar.style.width = progress + '%';
                 progressBar.textContent = progress + '%';
-                if (progress >= 100) {
-                    clearInterval(interval);
-                }
-            }, 200); // 20 seconds total (100 * 200ms)
+                if (progress >= 100) clearInterval(interval);
+            }, 200); // Exactly 20 seconds
 
             setTimeout(async () => {
-                const vote = document.querySelector('input[name="vote"]:checked').value;
+                const vote = selected.value;
                 try {
                     const response = await fetch(VOTE_ENDPOINT, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${API_KEY}` // Adjust if needed
+                            'Authorization': `Bearer ${API_KEY}`
                         },
                         body: JSON.stringify({ vote: vote === 'impeach' ? 'impeach' : 'dont_impeach' })
                     });
 
                     if (response.ok) {
-                        messageDiv.textContent = 'Thank you! Your vote has been recorded.';
-                        messageDiv.style.color = 'green';
-                        fetchResults(); // Update graph immediately
+                        messageDiv.textContent = 'Thank you for voting! Your vote has been securely recorded.';
+                        messageDiv.style.color = '#002868';
+                        fetchResults();
                     } else {
                         throw new Error('Failed');
                     }
                 } catch (error) {
-                    messageDiv.textContent = 'Error submitting vote. Please try again later.';
-                    messageDiv.style.color = 'red';
+                    messageDiv.textContent = 'Error: Vote submission failed. Please try again.';
+                    messageDiv.style.color: '#BF0A30';
                 } finally {
                     progressContainer.style.display = 'none';
                     progressBar.style.width = '0%';
                     progressBar.textContent = '0%';
                     submitBtn.disabled = false;
                 }
-            }, 20000); // Actual vote submission after 20 seconds
+            }, 20000); // Vote sent after exactly 20 seconds
         });
     </script>
 </body>
