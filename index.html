@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trump Impeachment Vote</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 400px;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin: 10px 0;
+            font-size: 18px;
+        }
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #message {
+            margin-top: 20px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Vote on Trump Impeachment</h1>
+        <form id="voteForm">
+            <label>
+                <input type="radio" name="vote" value="impeach" required> Impeach Trump
+            </label>
+            <label>
+                <input type="radio" name="vote" value="dont_impeach"> Don't Impeach Trump
+            </label>
+            <button type="submit">Submit Vote</button>
+        </form>
+        <div id="message"></div>
+    </div>
+
+    <script>
+        const VOTE_ENDPOINT = 'https://your-vote-endpoint.com/api/vote'; // Replace with actual endpoint
+        const API_KEY = 'your-api-key-here'; // Replace with actual API key
+
+        document.getElementById('voteForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            const vote = document.querySelector('input[name="vote"]:checked').value;
+            const messageDiv = document.getElementById('message');
+
+            try {
+                const response = await fetch(VOTE_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}` // Assuming API key is sent as Bearer token; adjust if needed
+                    },
+                    body: JSON.stringify({ vote: vote === 'impeach' ? 'Impeach Trump' : "Don't Impeach Trump" })
+                });
+
+                if (response.ok) {
+                    messageDiv.textContent = 'Vote submitted successfully!';
+                    messageDiv.style.color = 'green';
+                } else {
+                    throw new Error('Failed to submit vote');
+                }
+            } catch (error) {
+                messageDiv.textContent = 'Error submitting vote. Please try again.';
+                messageDiv.style.color = 'red';
+            }
+        });
+    </script>
+</body>
+</html>
