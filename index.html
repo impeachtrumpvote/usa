@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trump Impeachment Vote</title>
+    <title>Should President Trump Be Impeached?</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -11,34 +11,45 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             margin: 0;
         }
         .container {
             background: white;
-            padding: 20px;
+            padding: 30px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(0,0,0,0.1);
             text-align: center;
-            max-width: 400px;
+            max-width: 500px;
+            width: 90%;
         }
         h1 {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
+        }
+        p.subtitle {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 30px;
         }
         label {
             display: block;
-            margin: 10px 0;
+            margin: 15px 0;
             font-size: 18px;
         }
         input[type="radio"] {
             margin-right: 10px;
+            transform: scale(1.5);
         }
         button {
             background-color: #007bff;
             color: white;
             border: none;
-            padding: 10px 20px;
-            font-size: 16px;
+            padding: 12px 30px;
+            font-size: 18px;
             border-radius: 4px;
             cursor: pointer;
             margin-top: 20px;
@@ -46,56 +57,188 @@
         button:hover {
             background-color: #0056b3;
         }
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
         #message {
             margin-top: 20px;
             font-weight: bold;
+            min-height: 24px;
+        }
+        #progressContainer {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            margin: 20px 0;
+            display: none;
+        }
+        #progressBar {
+            width: 0%;
+            height: 30px;
+            background-color: #4caf50;
+            text-align: center;
+            line-height: 30px;
+            color: white;
+            border-radius: 4px;
+            transition: width 0.4s ease;
         }
     </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
     <div class="container">
-        <h1>Vote on Trump Impeachment</h1>
+        <h1>Should President Trump Be Impeached?</h1>
+        <p class="subtitle">Current Public Opinion Poll (as of December 2025)</p>
+        <canvas id="voteChart"></canvas>
+        
         <form id="voteForm">
             <label>
-                <input type="radio" name="vote" value="impeach" required> Impeach Trump
+                <input type="radio" name="vote" value="impeach" required> Impeach President Trump
             </label>
             <label>
-                <input type="radio" name="vote" value="dont_impeach"> Don't Impeach Trump
+                <input type="radio" name="vote" value="dont_impeach"> Do Not Impeach President Trump
             </label>
-            <button type="submit">Submit Vote</button>
+            <button type="submit" id="submitBtn">Submit Vote</button>
         </form>
+        
+        <div id="progressContainer">
+            <div id="progressBar">0%</div>
+        </div>
+        
         <div id="message"></div>
     </div>
 
     <script>
         const VOTE_ENDPOINT = 'https://your-vote-endpoint.com/api/vote'; // Replace with actual endpoint
         const API_KEY = 'your-api-key-here'; // Replace with actual API key
+        const RESULTS_ENDPOINT = 'https://your-vote-endpoint.com/api/results'; // New: Endpoint to fetch current vote counts (GET request)
+
+        let chart;
+
+        async function fetchResults() {
+            try {
+                const response = await fetch(RESULTS_ENDPOINT + '?api_key=' + API_KEY); // Adjust auth method as needed
+                if (!response.ok) throw new Error('Failed to fetch results');
+                const data = await response.json();
+                // Assume data = { impeach: number, dont_impeach: number }
+                const total = data.impeach + data.dont_impeach || 1;
+                const impeachPercent = Math.round((data.impeach / total) * 100);
+                const dontPercent = 100 - impeachPercent;
+
+                document.querySelector('p.subtitle').textContent = `Current Results (${total} votes)`;
+
+                if (chart) {
+                    chart.data.datasets[0].data = [data.impeach, data.dont_impeach];
+                    chart.update();
+                } else {
+                    chart = new Chart(document.getElementById('voteChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
+                            datasets: [{
+                                data: [data.impeach, data.dont_impeach],
+                                backgroundColor: ['#dc3545', '#28a745'],
+                                borderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            plugins: {
+                                legend: {
+                                    position: 'bottom'
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: function(context) {
+                                            const value = context.raw;
+                                            const percent = Math.round((value / total) * 100);
+                                            return `${value} votes (${percent}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error(error);
+                // Fallback to mock data if endpoint fails
+                const mockImpeach = 450;
+                const mockDont = 550;
+                const mockTotal = mockImpeach + mockDont;
+                if (!chart) {
+                    chart = new Chart(document.getElementById('voteChart'), {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Impeach President Trump', 'Do Not Impeach President Trump'],
+                            datasets: [{
+                                data: [mockImpeach, mockDont],
+                                backgroundColor: ['#dc3545', '#28a745']
+                            }]
+                        },
+                        options: { /* same as above */ }
+                    });
+                }
+            }
+        }
+
+        // Load results on page load and every 30 seconds
+        fetchResults();
+        setInterval(fetchResults, 30000);
 
         document.getElementById('voteForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            const vote = document.querySelector('input[name="vote"]:checked').value;
+            if (!document.querySelector('input[name="vote"]:checked')) return;
+
+            const submitBtn = document.getElementById('submitBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressBar = document.getElementById('progressBar');
             const messageDiv = document.getElementById('message');
 
-            try {
-                const response = await fetch(VOTE_ENDPOINT, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${API_KEY}` // Assuming API key is sent as Bearer token; adjust if needed
-                    },
-                    body: JSON.stringify({ vote: vote === 'impeach' ? 'Impeach Trump' : "Don't Impeach Trump" })
-                });
+            submitBtn.disabled = true;
+            progressContainer.style.display = 'block';
+            messageDiv.textContent = 'Processing your vote... Please wait.';
 
-                if (response.ok) {
-                    messageDiv.textContent = 'Vote submitted successfully!';
-                    messageDiv.style.color = 'green';
-                } else {
-                    throw new Error('Failed to submit vote');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 1;
+                progressBar.style.width = progress + '%';
+                progressBar.textContent = progress + '%';
+                if (progress >= 100) {
+                    clearInterval(interval);
                 }
-            } catch (error) {
-                messageDiv.textContent = 'Error submitting vote. Please try again.';
-                messageDiv.style.color = 'red';
-            }
+            }, 200); // 20 seconds total (100 * 200ms)
+
+            setTimeout(async () => {
+                const vote = document.querySelector('input[name="vote"]:checked').value;
+                try {
+                    const response = await fetch(VOTE_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${API_KEY}` // Adjust if needed
+                        },
+                        body: JSON.stringify({ vote: vote === 'impeach' ? 'impeach' : 'dont_impeach' })
+                    });
+
+                    if (response.ok) {
+                        messageDiv.textContent = 'Thank you! Your vote has been recorded.';
+                        messageDiv.style.color = 'green';
+                        fetchResults(); // Update graph immediately
+                    } else {
+                        throw new Error('Failed');
+                    }
+                } catch (error) {
+                    messageDiv.textContent = 'Error submitting vote. Please try again later.';
+                    messageDiv.style.color = 'red';
+                } finally {
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '0%';
+                    progressBar.textContent = '0%';
+                    submitBtn.disabled = false;
+                }
+            }, 20000); // Actual vote submission after 20 seconds
         });
     </script>
 </body>
